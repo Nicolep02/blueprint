@@ -28,7 +28,7 @@ public class CanvasService
             if (response.IsSuccessStatusCode)
             {
                 string json = await response.Content.ReadAsStringAsync();
-                List<Assignment> courseAssignments = JsonConvert.DeserializeObject<List<Assignment>>(json);
+                List<Assignment>? courseAssignments = JsonConvert.DeserializeObject<List<Assignment>>(json);
 
                 // NEW: Add the fetched assignments to our main list
                 if (courseAssignments != null)

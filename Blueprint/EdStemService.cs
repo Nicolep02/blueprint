@@ -35,6 +35,14 @@ public class EdStemService
 
             if (apiResponse?.Threads != null)
             {
+                // TEMPORARY DEBUGGING CODE
+                Console.WriteLine("\n--- All Thread Titles Found via API---");
+                foreach (var thread in apiResponse.Threads)
+                {
+                    Console.WriteLine(thread.Title);
+                }
+                Console.WriteLine("End of EdSTEM grab");
+                //---END OF TEMP DEBUG
                 // Find the relevant announcement post by scanning titles for keywords
                 var titleKeywords = new Regex("Week|Weekly|Announcement|Announcements|Logistics", RegexOptions.IgnoreCase);
                 var announcementThread = apiResponse.Threads.FirstOrDefault(t => t.Title != null && titleKeywords.IsMatch(t.Title));

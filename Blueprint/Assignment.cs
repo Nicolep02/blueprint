@@ -4,6 +4,7 @@ public class Assignment
     public DateTime? Due_At { get; set; } // Make it nullable for assignments with no due date
     public string? Html_Url { get; set; }
     public string? CourseID { get; set; }
+    public string UniqueId => $"{CourseID}-{Name}".Replace(" ", " ").ToLower();
 }
 
 public class EdThread
