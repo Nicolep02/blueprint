@@ -127,4 +127,23 @@ public class GoogleCalendarService
             Console.WriteLine($"Updated due date for: {assignment.Name}");
         }
     }
+
+    public async Task DeleteEventAsync(string eventId)
+    {
+            if (_service == null || string.IsNullOrEmpty(eventId))
+        {
+            Console.WriteLine("Service is not authorized or event ID is missing.");
+            return;
+        }
+
+        try
+        {
+            await _service.Events.Delete("primary", eventId).ExecuteAsync();
+            Console.WriteLine($"Successfully deleted event with ID: {eventId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred while deleting the event: {ex.Message}");
+        }
+    }
 }
