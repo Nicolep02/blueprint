@@ -38,7 +38,7 @@ public class EdStemService
                 if (apiResponse?.Threads != null)
                 {
                     var titleKeywords = new Regex("Week|Weekly|Announcement|Logistics", RegexOptions.IgnoreCase);
-                    
+
                     // FIX: Find ALL matching posts, sort by date, then take the newest one.
                     var announcementThread = apiResponse.Threads
                         .Where(t => t.Title != null && titleKeywords.IsMatch(t.Title))
@@ -63,34 +63,35 @@ public class EdStemService
                 Console.WriteLine($"Error fetching from Ed Stem API for course {courseId}: {response.StatusCode}");
             }
         }
-        
+
         return allAssignments;
     }
 
-    // This is our helper function, now private because only this class needs it.
-    private List<Assignment> ParseEdStemText(string postContent, string courseId)
+    //helper function, now private because only this class needs it.
+    public List<Assignment> ParseEdStemText(string postContent, string courseId)
     {
         var assignments = new List<Assignment>();
-        var pattern = new Regex(@"(?<name>Lab \d+|Homework \d+|Project \d+|Discussion \d+).*?due (?<date>.*?PST)");
+        var pattern = new Regex(@"(?<name>Lab \d+|Homework \d+|Project \d+|Discussion \d+).*?(is )?due (?<date>.*?PST)");
 
         foreach (Match match in pattern.Matches(postContent))
         {
             string name = match.Groups["name"].Value.Trim();
             string dateRaw = match.Groups["date"].Value.Trim();
             // We need to add the year. Let's assume the current year for Ed posts.
-            string dateStr = $"{dateRaw} {DateTime.Now.Year}";
+            string dateStr = dateRaw.Replace("PST", "").Trim();
+            dateStr = dateStr.Replace("@ ", "");
+            dateStr = $"{dateStr} {DateTime.Now.Year}";
 
             // Note: We remove "th", "st", "nd", "rd" to make parsing easier.
             dateStr = dateStr.Replace("th", "").Replace("st", "").Replace("nd", "").Replace("rd", "");
-            if (DateTime.TryParse(dateStr, System.Globalization.CultureInfo.InvariantCulture, out DateTime dueDate))
+            if (DateTime.TryParseExact(dateStr, "ddd M/d h:mmtt yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime dueDate))
             {
                 assignments.Add(new Assignment
                 {
                     Name = $"Ed: {name}",
                     Due_At = dueDate.ToLocalTime(),
                     CourseID = $"ed-{courseId}",
-                    // Update this with the correct course URL for EdStem
-                    Html_Url = "hhttps://edstem.org/us/courses/82062/discussion" 
+                    Html_Url = $"https://edstem.org/us/courses/{courseId}/discussion" 
                 });
             }
         }
