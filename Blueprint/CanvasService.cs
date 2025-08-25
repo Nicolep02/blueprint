@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 public class CanvasService
 {
+    private static readonly HttpClient client = new HttpClient();
     public async Task<List<Assignment>> FetchAssignmentsAsync(List<string> courseIDs)
     {
         // --- CONFIGURATION ---
@@ -17,7 +18,6 @@ public class CanvasService
         List<Assignment> allAssignments = new List<Assignment>();
 
         // --- CANVAS API CONNECTION ---
-        HttpClient client = new HttpClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
 
         Console.WriteLine("Fetching assignments from Canvas...");
@@ -30,7 +30,7 @@ public class CanvasService
                 string json = await response.Content.ReadAsStringAsync();
                 List<Assignment>? courseAssignments = JsonConvert.DeserializeObject<List<Assignment>>(json);
 
-                // NEW: Add the fetched assignments to our main list
+                // Add the fetched assignments to our main list
                 if (courseAssignments != null)
                 {
                     allAssignments.AddRange(courseAssignments);

@@ -1,10 +1,12 @@
+using Newtonsoft.Json;
+
 public class Assignment
 {
     public string? Name { get; set; }
     public DateTime? Due_At { get; set; } // Make it nullable for assignments with no due date
     public string? Html_Url { get; set; }
     public string? CourseID { get; set; }
-    public string UniqueId => $"{CourseID}-{Name}".Replace(" ", " ").ToLower();
+    public string UniqueId => $"{CourseID}-{Name}".Replace(" ", "").ToLower();
 }
 
 public class EdThread
@@ -13,6 +15,9 @@ public class EdThread
     public string? Title { get; set; }
     public string? Content { get; set; }
     public bool IsPinned { get; set; }
+
+    [JsonProperty("created_at")]
+    public DateTime CreatedAt { get; set; }
 }
 
 public class EdApiResponse

@@ -12,63 +12,63 @@ public class EdStemService
     // Use one HttpClient for efficiency, just like in the CanvasService
     private static readonly HttpClient client = new HttpClient();
 
-    public async Task<List<Assignment>> FetchAssignmentsAsync(string courseId)
+    public async Task<List<Assignment>> FetchAssignmentsAsync(List<string> courseIds)
     {
-        var assignments = new List<Assignment>();
+        var allAssignments = new List<Assignment>();
         var edToken = Environment.GetEnvironmentVariable("ED_TOKEN");
 
         if (string.IsNullOrEmpty(edToken))
         {
             Console.WriteLine("Error: ED_TOKEN environment variable not set.");
-            return assignments;
+            return allAssignments;
         }
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", edToken);
 
-        Console.WriteLine("\nFetching threads from Ed Stem API...");
-        var response = await client.GetAsync($"https://us.edstem.org/api/courses/{courseId}/threads");
-
-        if (response.IsSuccessStatusCode)
+        foreach (var courseId in courseIds)
         {
-            string json = await response.Content.ReadAsStringAsync();
-            var apiResponse = JsonConvert.DeserializeObject<EdApiResponse>(json);
+            Console.WriteLine($"\nFetching threads for Ed Stem course {courseId}...");
+            var response = await client.GetAsync($"https://us.edstem.org/api/courses/{courseId}/threads");
 
-            if (apiResponse?.Threads != null)
+            if (response.IsSuccessStatusCode)
             {
-                // TEMPORARY DEBUGGING CODE
-                Console.WriteLine("\n--- All Thread Titles Found via API---");
-                foreach (var thread in apiResponse.Threads)
-                {
-                    Console.WriteLine(thread.Title);
-                }
-                Console.WriteLine("End of EdSTEM grab");
-                //---END OF TEMP DEBUG
-                // Find the relevant announcement post by scanning titles for keywords
-                var titleKeywords = new Regex("Week|Weekly|Announcement|Announcements|Logistics", RegexOptions.IgnoreCase);
-                var announcementThread = apiResponse.Threads.FirstOrDefault(t => t.Title != null && titleKeywords.IsMatch(t.Title));
+                string json = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<EdApiResponse>(json);
 
-                if (announcementThread?.Content != null)
+                if (apiResponse?.Threads != null)
                 {
-                    Console.WriteLine($"Found matching post: '{announcementThread.Title}'. Parsing content...");
-                    // We reuse our existing parser!
-                    assignments = ParseEdStemText(announcementThread.Content);
-                }
-                else
-                {
-                    Console.WriteLine("Could not find a weekly announcement post via API.");
+                    var titleKeywords = new Regex("Week|Weekly|Announcement|Logistics", RegexOptions.IgnoreCase);
+                    
+                    // FIX: Find ALL matching posts, sort by date, then take the newest one.
+                    var announcementThread = apiResponse.Threads
+                        .Where(t => t.Title != null && titleKeywords.IsMatch(t.Title))
+                        .OrderByDescending(t => t.CreatedAt)
+                        .FirstOrDefault();
+
+                    if (announcementThread?.Content != null)
+                    {
+                        Console.WriteLine($"Found matching post: '{announcementThread.Title}'. Parsing content...");
+                        // Pass the courseId to the parser
+                        var parsedAssignments = ParseEdStemText(announcementThread.Content, courseId);
+                        allAssignments.AddRange(parsedAssignments);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Could not find a weekly announcement post in course {courseId}.");
+                    }
                 }
             }
-        }
-        else
-        {
-            Console.WriteLine($"Error fetching from Ed Stem API: {response.StatusCode}");
+            else
+            {
+                Console.WriteLine($"Error fetching from Ed Stem API for course {courseId}: {response.StatusCode}");
+            }
         }
         
-        return assignments;
+        return allAssignments;
     }
 
     // This is our helper function, now private because only this class needs it.
-    private List<Assignment> ParseEdStemText(string postContent)
+    private List<Assignment> ParseEdStemText(string postContent, string courseId)
     {
         var assignments = new List<Assignment>();
         var pattern = new Regex(@"(?<name>Lab \d+|Homework \d+|Project \d+|Discussion \d+).*?due (?<date>.*?PST)");
@@ -88,8 +88,9 @@ public class EdStemService
                 {
                     Name = $"Ed: {name}",
                     Due_At = dueDate.ToLocalTime(),
+                    CourseID = $"ed-{courseId}",
                     // Update this with the correct course URL for EdStem
-                    Html_Url = "https://edstem.org/us/courses/60131/discussion/" 
+                    Html_Url = "hhttps://edstem.org/us/courses/82062/discussion" 
                 });
             }
         }

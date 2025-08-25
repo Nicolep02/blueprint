@@ -101,12 +101,11 @@ public class GoogleCalendarService
                 Private__ = new Dictionary<string, string>
                 {
                     {"uniqueId", assignment.UniqueId},
-                    {"source", "blueprint_scarper"}
+                    {"source", "blueprint_scraper"}
                 }
             }
         };
 
-        await _service.Events.Insert(newEvent, "primary").ExecuteAsync();
         var request = _service.Events.Insert(newEvent, "primary");
         var createdEvent = await request.ExecuteAsync();
         return createdEvent.Id;
