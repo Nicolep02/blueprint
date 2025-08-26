@@ -39,7 +39,7 @@ public class EdStemService
                 {
                     var titleKeywords = new Regex("Week|Weekly|Announcement|Logistics", RegexOptions.IgnoreCase);
 
-                    // FIX: Find ALL matching posts, sort by date, then take the newest one.
+                    // Find ALL matching posts, sort by date, then take the newest one.
                     var announcementThread = apiResponse.Threads
                         .Where(t => t.Title != null && titleKeywords.IsMatch(t.Title))
                         .OrderByDescending(t => t.CreatedAt)
