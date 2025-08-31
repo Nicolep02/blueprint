@@ -7,6 +7,11 @@ public class Assignment
     public string? Html_Url { get; set; }
     public string? CourseID { get; set; }
     public string UniqueId => $"{CourseID}-{Name}".Replace(" ", "").ToLower();
+
+    public override string ToString()
+    {
+        return $"  Name: {Name}\n  Due_At: {Due_At}\n  Html_Url: {Html_Url}\n  CourseID: {CourseID}\n  UniqueId: {UniqueId}\n";
+    }
 }
 
 public class EdThread

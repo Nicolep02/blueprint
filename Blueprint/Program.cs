@@ -17,8 +17,8 @@ class Program
         var edStemService = new EdStemService();
 
         // Define the configuration for our services
-        List<string> canvasCourseIDs = new List<string> { "1547422" }; //  canvas course ID
-        List<string> edStemCourseId = new List<string> { "82062" }; // Your Ed Stem Course ID
+        List<string> canvasCourseIDs = new List<string> { "1548973", "1548445" }; //  canvas course ID 127: 1548973, 170: 1548973
+        List<string> edStemCourseId = new List<string> { "85387", "83260" }; // Your Ed Stem Course ID 127: 85387, 161: 83260, 170: 85252
 
 
         // --- 2. FETCH DATA ---
@@ -48,7 +48,7 @@ class Program
         // get existing events on calendar
         var existingEvents = await calendarService.GetExistingEventsAsync();
 
-        bool isDryRun = false; //testing what to be added
+        bool isDryRun = true; //testing what to be added
 
         Console.WriteLine("Syncing assignments with your calendar...");
         if (isDryRun)
@@ -93,17 +93,17 @@ class Program
 
         Console.WriteLine("\nSync complete.");
 
-        // Print the final, sorted list to the console
-        foreach (var assignment in sortedAssignments)
-        {
-            Console.WriteLine($"Name: {assignment.Name}");
-            Console.WriteLine($"Due: {assignment.Due_At!.Value.ToLocalTime()}");
-            Console.WriteLine($"Link: {assignment.Html_Url}\n");
-        }
+        // // Print the final, sorted list to the console
+        // foreach (var assignment in sortedAssignments)
+        // {
+        //     Console.WriteLine($"Name: {assignment.Name}");
+        //     Console.WriteLine($"Due: {assignment.Due_At!.Value.ToLocalTime()}");
+        //     Console.WriteLine($"Link: {assignment.Html_Url}\n");
+        // }
 
-            // --- LAST. SAVE RESULTS ---
-            // Save the final, sorted list to a JSON file
-            await SaveAssignmentsToFile(sortedAssignments);
+        //     // --- LAST. SAVE RESULTS ---
+        //     // Save the final, sorted list to a JSON file
+        //     await SaveAssignmentsToFile(sortedAssignments);
     }
 
     static async Task SaveAssignmentsToFile(IEnumerable<Assignment> assignments)

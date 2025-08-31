@@ -13,6 +13,20 @@ public class GoogleCalendarService
     private static readonly string[] Scopes = { CalendarService.Scope.Calendar };
     private CalendarService? _service;
 
+    private Event.RemindersData GetCustomReminders()
+    {
+        return new Event.RemindersData()
+        {
+            UseDefault = false, // This is crucial, it tells Google to use our custom reminders.
+            Overrides = new List<EventReminder>()
+            {
+                new EventReminder() { Method = "popup", Minutes = 3 * 24 * 60 }, // 3 days before
+                new EventReminder() { Method = "popup", Minutes = 1 * 24 * 60 }, // 1 day before
+                new EventReminder() { Method = "popup", Minutes = 10 }           // 10 minutes before
+            }
+        };
+    }
+
     public async Task TestConnectionAsync()
     {
         if (_service == null)
@@ -103,7 +117,8 @@ public class GoogleCalendarService
                     {"uniqueId", assignment.UniqueId},
                     {"source", "blueprint_scraper"}
                 }
-            }
+            },
+            Reminders = GetCustomReminders()
         };
 
         var request = _service.Events.Insert(newEvent, "primary");
@@ -121,6 +136,7 @@ public class GoogleCalendarService
             existingEvent.End = new EventDateTime() { DateTimeDateTimeOffset = assignment.Due_At.Value };
             needsUpdate = true;
         }
+        existingEvent.Reminders = GetCustomReminders();
         if (needsUpdate)
         {
             await _service.Events.Update(existingEvent, "primary", existingEvent.Id).ExecuteAsync();
